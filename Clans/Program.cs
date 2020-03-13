@@ -21,6 +21,7 @@ public class ClanApplicationContext : ApplicationContext {
     private NotifyIcon trayIcon;
     private ContextMenuStrip clansMenuStrip;
     private Clash clash;
+    private Sysproxy sysproxy;
 
     public ClanApplicationContext() {
         clansMenuStrip = new ContextMenuStrip();
@@ -41,6 +42,7 @@ public class ClanApplicationContext : ApplicationContext {
     void menuOpening(object sender, System.ComponentModel.CancelEventArgs e) {
         clansMenuStrip.Items.Clear();
         clash = new Clash("127.0.0.1", 9090);
+        sysproxy = new Sysproxy(clash.config.port);
 
         // 出站模式
         clansMenuStrip.Items.Add("出站模式");
@@ -71,6 +73,17 @@ public class ClanApplicationContext : ApplicationContext {
 
         // 节点列表
         updateProxyList();
+
+        // 系统代理
+        ToolStripMenuItem sys_tsi = new ToolStripMenuItem("设置为系统代理");
+        sys_tsi.Checked = sysproxy.Enabled;
+        sys_tsi.Click += new EventHandler(sysProxyChanged);
+        clansMenuStrip.Items.Add(sys_tsi);
+
+        // 复制代理命令
+        ToolStripMenuItem cmd_tsi = new ToolStripMenuItem("复制终端代理命令");
+        cmd_tsi.Click += new EventHandler(copyCmdClicked);
+        clansMenuStrip.Items.Add(cmd_tsi);
         clansMenuStrip.Items.Add("-");
 
         // 退出
@@ -117,6 +130,7 @@ public class ClanApplicationContext : ApplicationContext {
                 i++;
             }
         }
+        clansMenuStrip.Items.Add("-");
     }
 
     void proxySelected(object sender, EventArgs e) {
@@ -124,5 +138,16 @@ public class ClanApplicationContext : ApplicationContext {
         string groupName = ((ToolStripMenuItem)sender).Tag.ToString();
 
         clash.ChangeProxy(groupName, proxyName);
+    }
+
+    void sysProxyChanged(object sender, EventArgs e) {
+        ToolStripMenuItem tsi = (ToolStripMenuItem)sender;
+        tsi.Checked = !tsi.Checked;
+        sysproxy.Enabled = tsi.Checked;
+    }
+
+    void copyCmdClicked(object sender, EventArgs e) {
+        string cmd = $"set HTTP_PROXY=http://127.0.0.1:{clash.config.port}\nset HTTPS_PROXY=http://127.0.0.1:{clash.config.port}\n";
+        Clipboard.SetText(cmd);
     }
 }

@@ -30,21 +30,21 @@ namespace Clans {
         public ClashConfig config { get; set; }
 
         private string request(string endpoint, string method = "GET", HttpContent content = null) {
-            string url = string.Format("{0}{1}", _exUrl, endpoint);
+            string url = $"{_exUrl}{endpoint}";
             HttpRequestMessage req = new HttpRequestMessage(new HttpMethod(method), url);
             req.Content = content;
             return _client.SendAsync(req).Result.Content.ReadAsStringAsync().Result;
         }
 
         public Clash(string url, int port) {
-            _exUrl = string.Format("http://{0}:{1}", url, port);
+            _exUrl = $"http://{url}:{port}";
 
             string resp = request("/configs");
             config = JsonConvert.DeserializeObject<ClashConfig>(resp);
         }
 
         public void ChangeMode(string mode) {
-            HttpContent content = new StringContent(string.Format("{{\"mode\":\"{0}\"}}", mode));
+            HttpContent content = new StringContent($"{{\"mode\":\"{mode}\"}}");
             _ = request("/configs", "PATCH", content);
         }
 
@@ -54,7 +54,7 @@ namespace Clans {
         }
 
         public void ChangeProxy(string group, string proxy) {
-            HttpContent content = new StringContent(string.Format("{{\"name\":\"{0}\"}}", proxy));
+            HttpContent content = new StringContent($"{{\"name\":\"{proxy}\"}}");
             string uri = string.Format("/proxies/{0}", group);
             _ = request(uri, "PUT", content);
         }

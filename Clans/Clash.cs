@@ -1,5 +1,5 @@
-﻿using System.Net.Http;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Net.Http;
 using System.Collections.Generic;
 
 namespace Clans {

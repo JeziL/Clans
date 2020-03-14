@@ -1,6 +1,9 @@
 ﻿using Clans;
 using System;
+using System.IO;
+using Newtonsoft.Json;
 using System.Windows.Forms;
+using YamlDotNet.Serialization;
 using System.Collections.Generic;
 
 namespace Clans {
@@ -17,12 +20,42 @@ namespace Clans {
 public class ClanApplicationContext : ApplicationContext {
     private NotifyIcon _trayIcon;
     private ContextMenuStrip _clansMenuStrip;
-    private Clash _clash;
+    private ClashAPI _clashAPI;
     private Sysproxy _sysproxy;
+
+    private static string _configDir = Environment.ExpandEnvironmentVariables("%USERPROFILE%\\.config\\clash");
+    private static string _configFile = Path.Combine(_configDir, "config.yaml");
+    private static string _profileDir = Path.Combine(_configDir, "profiles");
+    private static string _profileListFile = Path.Combine(_profileDir, "list.json");
+
+    private string _currentConfig;
+    private ConfigList _configList;
+
+    private Clash _clash;
 
     public ClanApplicationContext() {
         _clansMenuStrip = new ContextMenuStrip();
         _clansMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(menuOpening);
+
+        // 读取配置并开启 clash 进程
+        readConfig();
+        _clash = new Clash(_currentConfig);
+        _clash.Start();
+
+        // 读取 API 端口，并连接 API
+        string cfg = File.ReadAllText(_currentConfig);
+        Dictionary<string, object> dict = new Deserializer().Deserialize<Dictionary<string, object>>(cfg);
+        string extController = dict["external-controller"].ToString();
+        _clashAPI = new ClashAPI(extController); //TODO: external controller protentially not started yet.
+        
+        // 打开系统代理
+        _sysproxy = new Sysproxy(_clashAPI.config.port);
+        _sysproxy.Enabled = true;
+
+        // 若当前托管配置记录了 selector 选择，则恢复选择状态
+        if (_configList.index >= 0 && _configList.files[_configList.index].selections.Count > 0) {
+            restoreSelections(_configList.files[_configList.index].selections);
+        }
 
         _trayIcon = new NotifyIcon() {
             Icon = Clans.Properties.Resources.Clash,
@@ -32,14 +65,14 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     void onExit(object sender, EventArgs e) {
+        _sysproxy.Enabled = false;
+        _clash.Stop();
         _trayIcon.Dispose();
         Application.Exit();
     }
 
     void menuOpening(object sender, System.ComponentModel.CancelEventArgs e) {
         _clansMenuStrip.Items.Clear();
-        _clash = new Clash("127.0.0.1", 9090);
-        _sysproxy = new Sysproxy(_clash.config.port);
 
         // 出站模式
         _clansMenuStrip.Items.Add("出站模式");
@@ -47,7 +80,7 @@ public class ClanApplicationContext : ApplicationContext {
         ToolStripMenuItem global_tsi = new ToolStripMenuItem("全局代理", null, null, "Global");
         ToolStripMenuItem rule_tsi = new ToolStripMenuItem("规则模式", null, null, "Rule");
 
-        switch (_clash.config.mode) {
+        switch (_clashAPI.config.mode) {
             case "Global":
                 global_tsi.Checked = true;
                 break;
@@ -92,14 +125,14 @@ public class ClanApplicationContext : ApplicationContext {
 
     void modeSelected(object sender, EventArgs e) {
         string mode = ((ToolStripMenuItem)sender).Name;
-        _clash.ChangeMode(mode);
+        _clashAPI.ChangeMode(mode);
     }
 
     void updateProxyList() {
-        if (_clash.config.mode == "Direct") return;
-        Dictionary<string, Proxy> proxies = _clash.GetProxies();
+        if (_clashAPI.config.mode == "Direct") return;
+        Dictionary<string, Proxy> proxies = _clashAPI.GetProxies();
 
-        if (_clash.config.mode == "Global") {
+        if (_clashAPI.config.mode == "Global") {
             Proxy global = proxies["GLOBAL"];
 
             _clansMenuStrip.Items.Add(global.name);
@@ -111,7 +144,7 @@ public class ClanApplicationContext : ApplicationContext {
                 tsi.Click += new EventHandler(proxySelected);
             }
         }
-        else if (_clash.config.mode == "Rule") {
+        else if (_clashAPI.config.mode == "Rule") {
             int i = 0;
             foreach (Proxy proxy in proxies.Values) {
                 if (proxy.proxyType != "Selector" || proxy.name == "GLOBAL") continue;
@@ -134,7 +167,13 @@ public class ClanApplicationContext : ApplicationContext {
         string proxyName = ((ToolStripMenuItem)sender).Name;
         string groupName = ((ToolStripMenuItem)sender).Tag.ToString();
 
-        _clash.ChangeProxy(groupName, proxyName);
+        _clashAPI.ChangeProxy(groupName, proxyName);
+
+        // 将代理选择更新至托管配置目录文件
+        if (_configList.index >= 0) {
+            _configList.files[_configList.index].selections[groupName] = proxyName;
+            File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
+        }
     }
 
     void sysProxyChanged(object sender, EventArgs e) {
@@ -144,7 +183,40 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     void copyCmdClicked(object sender, EventArgs e) {
-        string cmd = $"set HTTP_PROXY=http://127.0.0.1:{_clash.config.port}\nset HTTPS_PROXY=http://127.0.0.1:{_clash.config.port}\n";
+        string cmd = $"set HTTP_PROXY=http://127.0.0.1:{_clashAPI.config.port}\nset HTTPS_PROXY=http://127.0.0.1:{_clashAPI.config.port}\n";
         Clipboard.SetText(cmd);
+    }
+
+    void readConfig() {
+        // 检查是否存在配置文件夹，若无，则创建并导入默认初始配置及数据库
+        if (!Directory.Exists(_configDir)) {
+            Directory.CreateDirectory(_configDir);
+            File.Copy(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Resources\\config.yaml"), _configFile, true);
+            File.Copy(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Resources\\Country.mmdb"), Path.Combine(_configDir, "Country.mmdb"), true);
+        }
+        // 检查是否存在托管配置文件夹，若无，创建并建立初始托管配置目录
+        if (!Directory.Exists(_profileDir)) {
+            Directory.CreateDirectory(_profileDir);
+            File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(new ConfigList()));
+        }
+
+        // 读取托管配置目录
+        string cfgStr = File.ReadAllText(_profileListFile);
+        _configList = JsonConvert.DeserializeObject<ConfigList>(cfgStr);
+        if (_configList.index < 0 || _configList.files.Count == 0) {
+            // 目录为空，将当前配置指向默认初始配置
+            _currentConfig = _configFile;
+        }
+        else {
+            // 目录不为空，设置当前配置
+            string timestamp = _configList.files[_configList.index].timestamp;
+            _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+        }
+    }
+
+    void restoreSelections(Dictionary<string, string> selections) {
+        foreach (KeyValuePair<string, string> selection in selections) {
+            _clashAPI.ChangeProxy(selection.Key, selection.Value);
+        }
     }
 }

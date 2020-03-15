@@ -135,6 +135,11 @@ public class ClanApplicationContext : ApplicationContext {
         }
         ((ToolStripDropDownItem)cfg_tsi).DropDownItems.Add(switch_tsi);
 
+        ToolStripMenuItem manage_tsi = new ToolStripMenuItem("管理...");
+        manage_tsi.Click += new EventHandler(showConfigForm);
+        ((ToolStripDropDownItem)cfg_tsi).DropDownItems.Add(manage_tsi);
+        _clansMenuStrip.Items.Add("-");
+
 
         // 退出
         ToolStripItem exit_tsi = _clansMenuStrip.Items.Add("退出");
@@ -264,5 +269,10 @@ public class ClanApplicationContext : ApplicationContext {
         if (_configList.index >= 0 && _configList.files[_configList.index].selections.Count > 0) {
             restoreSelections(_configList.files[_configList.index].selections);
         }
+    }
+
+    void showConfigForm(object sender, EventArgs e) {
+        ConfigForm form = new ConfigForm(_configList);
+        form.Show();
     }
 }

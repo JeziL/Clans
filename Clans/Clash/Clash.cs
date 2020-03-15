@@ -52,11 +52,16 @@ namespace Clans {
         }
 
         public void Stop() {
+            _process.CancelErrorRead();
+            _process.CancelOutputRead();
             _process.Kill();
         }
 
-        private void cmd_DataReceived(object sender, DataReceivedEventArgs e) {
-            Console.WriteLine(e.Data.ToString());
+        public void ReloadConfig(string configPath) {
+            _configPath = configPath;
+            _process.StartInfo.Arguments = $"-f {_configPath}";
+            Stop();
+            Start();
         }
     }
 }

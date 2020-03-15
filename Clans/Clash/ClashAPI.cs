@@ -58,5 +58,12 @@ namespace Clans {
             string uri = string.Format("/proxies/{0}", group);
             _ = request(uri, "PUT", content);
         }
+
+        public void UpdateURL(string url) {
+            _exUrl = url.StartsWith("http") ? url : $"http://{url}";
+
+            string resp = request("/configs");
+            config = JsonConvert.DeserializeObject<ClashConfig>(resp);
+        }
     }
 }

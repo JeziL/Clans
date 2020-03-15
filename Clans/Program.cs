@@ -75,7 +75,7 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Clear();
 
         // 出站模式
-        _clansMenuStrip.Items.Add("出站模式");
+        ToolStripItem mode_tsi = _clansMenuStrip.Items.Add("出站模式");
         ToolStripMenuItem direct_tsi = new ToolStripMenuItem("直接连接", null, null, "Direct");
         ToolStripMenuItem global_tsi = new ToolStripMenuItem("全局代理", null, null, "Global");
         ToolStripMenuItem rule_tsi = new ToolStripMenuItem("规则模式", null, null, "Rule");
@@ -92,11 +92,11 @@ public class ClanApplicationContext : ApplicationContext {
                 break;
         }
 
-        ((ToolStripDropDownItem)(_clansMenuStrip.Items[0])).DropDownItems.Add(direct_tsi);
-        ((ToolStripDropDownItem)(_clansMenuStrip.Items[0])).DropDownItems.Add(rule_tsi);
-        ((ToolStripDropDownItem)(_clansMenuStrip.Items[0])).DropDownItems.Add(global_tsi);
+        ((ToolStripDropDownItem)mode_tsi).DropDownItems.Add(direct_tsi);
+        ((ToolStripDropDownItem)mode_tsi).DropDownItems.Add(rule_tsi);
+        ((ToolStripDropDownItem)mode_tsi).DropDownItems.Add(global_tsi);
 
-        foreach (ToolStripMenuItem item in ((ToolStripDropDownItem)(_clansMenuStrip.Items[0])).DropDownItems) {
+        foreach (ToolStripMenuItem item in ((ToolStripDropDownItem)mode_tsi).DropDownItems) {
             item.Click += new EventHandler(modeSelected);
         }
         _clansMenuStrip.Items.Add("-");
@@ -116,9 +116,29 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Add(cmd_tsi);
         _clansMenuStrip.Items.Add("-");
 
+        // 配置管理
+        ToolStripItem cfg_tsi = _clansMenuStrip.Items.Add("配置");
+        ToolStripMenuItem switch_tsi = new ToolStripMenuItem("切换托管配置");
+        if (_configList.index >= 0 && _configList.files.Count > 0) {
+            // 存在有效的配置目录
+            for (int i = 0; i < _configList.files.Count; i++) {
+                string name = _configList.files[i].name;
+                ToolStripMenuItem tsi = new ToolStripMenuItem(name);
+                tsi.Tag = i;
+                if (i == _configList.index) tsi.Checked = true;
+                tsi.Click += new EventHandler(configChanged);
+                switch_tsi.DropDownItems.Add(tsi);
+            }
+        } else {
+            // 配置目录无效，禁用
+            switch_tsi.Enabled = false;
+        }
+        ((ToolStripDropDownItem)cfg_tsi).DropDownItems.Add(switch_tsi);
+
+
         // 退出
-        _clansMenuStrip.Items.Add("退出");
-        _clansMenuStrip.Items[_clansMenuStrip.Items.Count - 1].Click += new EventHandler(onExit);
+        ToolStripItem exit_tsi = _clansMenuStrip.Items.Add("退出");
+        exit_tsi.Click += new EventHandler(onExit);
 
         e.Cancel = false;
     }
@@ -217,6 +237,32 @@ public class ClanApplicationContext : ApplicationContext {
     void restoreSelections(Dictionary<string, string> selections) {
         foreach (KeyValuePair<string, string> selection in selections) {
             _clashAPI.ChangeProxy(selection.Key, selection.Value);
+        }
+    }
+
+    void configChanged(object sender, EventArgs e) {
+        ToolStripMenuItem tsi = (ToolStripMenuItem)sender;
+
+        _configList.index = (int)(tsi.Tag);
+        string timestamp = _configList.files[_configList.index].timestamp;
+        File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
+
+        _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+        _clash.ReloadConfig(_currentConfig);
+
+        // 读取 API 端口，并连接 API
+        string cfg = File.ReadAllText(_currentConfig);
+        Dictionary<string, object> dict = new Deserializer().Deserialize<Dictionary<string, object>>(cfg);
+        string extController = dict["external-controller"].ToString();
+        _clashAPI.UpdateURL(extController); //TODO: external controller protentially not started yet.
+
+        // 更新系统代理
+        _sysproxy = new Sysproxy(_clashAPI.config.port);
+        _sysproxy.Enabled = true;
+
+        // 若当前托管配置记录了 selector 选择，则恢复选择状态
+        if (_configList.index >= 0 && _configList.files[_configList.index].selections.Count > 0) {
+            restoreSelections(_configList.files[_configList.index].selections);
         }
     }
 }

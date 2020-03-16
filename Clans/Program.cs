@@ -125,7 +125,7 @@ public class ClanApplicationContext : ApplicationContext {
 
         // 局域网连接
         ToolStripMenuItem lan_tsi = new ToolStripMenuItem("允许局域网连接");
-        //autostart_tsi.Checked = _clashAPI.config.;
+        lan_tsi.Checked = _clashAPI.config.allowLAN;
         lan_tsi.Click += new EventHandler(allowLANChanged);
         _clansMenuStrip.Items.Add(lan_tsi);
         _clansMenuStrip.Items.Add("-");
@@ -394,6 +394,6 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     private void allowLANChanged(object sender, EventArgs e) {
-
+        _clashAPI.ChangeAllowLAN(!_clashAPI.config.allowLAN);
     }
 }

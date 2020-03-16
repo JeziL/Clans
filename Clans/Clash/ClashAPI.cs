@@ -8,6 +8,8 @@ namespace Clans {
         [JsonProperty("socks-port")]
         public int socksPort { get; set; }
         public string mode { get; set; }
+        [JsonProperty("allow-lan")]
+        public bool allowLAN { get; set; }
     }
 
     class Proxy {
@@ -27,7 +29,13 @@ namespace Clans {
     class ClashAPI {
         private string _exUrl;
         private static readonly HttpClient _client = new HttpClient();
-        public ClashConfig config { get; set; }
+        public ClashConfig config {
+            get {
+                string resp = request("/configs");
+                return JsonConvert.DeserializeObject<ClashConfig>(resp);
+            }
+            set { }
+        }
 
         private string request(string endpoint, string method = "GET", HttpContent content = null) {
             string url = $"{_exUrl}{endpoint}";
@@ -38,13 +46,15 @@ namespace Clans {
 
         public ClashAPI(string url) {
             _exUrl = url.StartsWith("http") ? url : $"http://{url}";
-
-            string resp = request("/configs");
-            config = JsonConvert.DeserializeObject<ClashConfig>(resp);
         }
 
         public void ChangeMode(string mode) {
             HttpContent content = new StringContent($"{{\"mode\":\"{mode}\"}}");
+            _ = request("/configs", "PATCH", content);
+        }
+
+        public void ChangeAllowLAN(bool allow) {
+            HttpContent content = new StringContent($"{{\"allow-lan\":\"{allow}\"}}".ToLower());
             _ = request("/configs", "PATCH", content);
         }
 

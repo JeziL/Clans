@@ -54,7 +54,7 @@ namespace Clans {
         }
 
         public void ChangeAllowLAN(bool allow) {
-            HttpContent content = new StringContent($"{{\"allow-lan\":\"{allow}\"}}".ToLower());
+            HttpContent content = new StringContent($"{{\"allow-lan\":{allow}}}".ToLower());
             _ = request("/configs", "PATCH", content);
         }
 

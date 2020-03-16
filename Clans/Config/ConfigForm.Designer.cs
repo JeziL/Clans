@@ -101,6 +101,7 @@
             this.updateBtn.TabIndex = 2;
             this.updateBtn.Text = "更新";
             this.updateBtn.UseVisualStyleBackColor = true;
+            this.updateBtn.Click += new System.EventHandler(this.updateBtn_Click);
             // 
             // addBtn
             // 

@@ -60,7 +60,7 @@ namespace Clans {
         public void ReloadConfig(string configPath) {
             _configPath = configPath;
             _process.StartInfo.Arguments = $"-f {_configPath}";
-            Stop();
+            if (!_process.HasExited) Stop();
             Start();
         }
     }

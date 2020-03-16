@@ -316,9 +316,31 @@ public class ClanApplicationContext : ApplicationContext {
             _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
             File.WriteAllText(_currentConfig, configData);
             reloadConfig();
+            File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
         }
         catch {
             MessageBox.Show("无法下载配置文件", "错误");
+        }
+    }
+
+    public void UpdateConfig(int index) {
+        string url = _configList.files[index].url;
+        HttpClient client = new HttpClient();
+        try {
+            string configData = client.GetStringAsync(url).Result;
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (index == _configList.index) _clash.Stop();
+            File.Delete(Path.Combine(_profileDir, $"{_configList.files[index].timestamp}.yaml"));
+            _configList.files[index].timestamp = $"{timestamp}";
+            File.WriteAllText(Path.Combine(_profileDir, $"{timestamp}.yaml"), configData);
+            File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
+            if (index == _configList.index) {
+                _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+                reloadConfig();
+            }
+        }
+        catch {
+            MessageBox.Show("无法更新配置文件", "错误");
         }
     }
 }

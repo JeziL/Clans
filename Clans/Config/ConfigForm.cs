@@ -50,5 +50,11 @@ namespace Clans {
             }
             form.Dispose();
         }
+
+        private void updateBtn_Click(object sender, EventArgs e) {
+            int index = configGridView.CurrentRow.Index;
+            _appctxt.UpdateConfig(index);
+            refreshList();
+        }
     }
 }

@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Clans {
@@ -45,6 +38,17 @@ namespace Clans {
             int index = configGridView.CurrentRow.Index;
             _appctxt.DeleteConfigList(index);
             refreshList();
+        }
+
+        private void addBtn_Click(object sender, EventArgs e) {
+            AddConfigForm form = new AddConfigForm();
+            if (form.ShowDialog(this) == DialogResult.OK) {
+                string name = form.nameLabel.Text;
+                string url = form.urlLabel.Text;
+                _appctxt.AddConfig(name, url);
+                refreshList();
+            }
+            form.Dispose();
         }
     }
 }

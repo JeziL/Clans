@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using Newtonsoft.Json;
+using System.Net.Http;
 using System.Windows.Forms;
 using YamlDotNet.Serialization;
 using System.Collections.Generic;
@@ -303,5 +304,21 @@ public class ClanApplicationContext : ApplicationContext {
         }
 
         File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
+    }
+
+    public void AddConfig(string name, string url) {
+        HttpClient client = new HttpClient();
+        try {
+            string configData = client.GetStringAsync(url).Result;
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            _configList.files.Add(new ConfigFile($"{timestamp}", name, url));
+            _configList.index = _configList.files.Count - 1;
+            _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+            File.WriteAllText(_currentConfig, configData);
+            reloadConfig();
+        }
+        catch {
+            MessageBox.Show("无法下载配置文件", "错误");
+        }
     }
 }

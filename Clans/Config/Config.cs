@@ -17,6 +17,13 @@ namespace Clans {
                 return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
             }
         }
+
+        public ConfigFile(string timestamp, string name, string url) {
+            this.timestamp = timestamp;
+            this.name = name;
+            this.url = url;
+            selections = new Dictionary<string, string>();
+        }
     }
 
     public class ConfigList {

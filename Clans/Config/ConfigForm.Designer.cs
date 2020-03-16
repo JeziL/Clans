@@ -43,8 +43,7 @@
             this.ConfigName,
             this.Url,
             this.Timestamp});
-            this.configGridView.Location = new System.Drawing.Point(9, 9);
-            this.configGridView.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.configGridView.Location = new System.Drawing.Point(12, 13);
             this.configGridView.MultiSelect = false;
             this.configGridView.Name = "configGridView";
             this.configGridView.ReadOnly = true;
@@ -52,7 +51,7 @@
             this.configGridView.RowHeadersWidth = 72;
             this.configGridView.RowTemplate.Height = 33;
             this.configGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.configGridView.Size = new System.Drawing.Size(564, 236);
+            this.configGridView.Size = new System.Drawing.Size(776, 330);
             this.configGridView.TabIndex = 0;
             // 
             // ConfigName
@@ -85,10 +84,9 @@
             // deleteBtn
             // 
             this.deleteBtn.Enabled = false;
-            this.deleteBtn.Location = new System.Drawing.Point(9, 259);
-            this.deleteBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.deleteBtn.Location = new System.Drawing.Point(12, 363);
             this.deleteBtn.Name = "deleteBtn";
-            this.deleteBtn.Size = new System.Drawing.Size(96, 31);
+            this.deleteBtn.Size = new System.Drawing.Size(132, 43);
             this.deleteBtn.TabIndex = 1;
             this.deleteBtn.Text = "删除";
             this.deleteBtn.UseVisualStyleBackColor = true;
@@ -97,35 +95,34 @@
             // updateBtn
             // 
             this.updateBtn.Enabled = false;
-            this.updateBtn.Location = new System.Drawing.Point(243, 259);
-            this.updateBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.updateBtn.Location = new System.Drawing.Point(334, 363);
             this.updateBtn.Name = "updateBtn";
-            this.updateBtn.Size = new System.Drawing.Size(96, 31);
+            this.updateBtn.Size = new System.Drawing.Size(132, 43);
             this.updateBtn.TabIndex = 2;
             this.updateBtn.Text = "更新";
             this.updateBtn.UseVisualStyleBackColor = true;
             // 
             // addBtn
             // 
-            this.addBtn.Location = new System.Drawing.Point(477, 259);
-            this.addBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.addBtn.Location = new System.Drawing.Point(656, 363);
             this.addBtn.Name = "addBtn";
-            this.addBtn.Size = new System.Drawing.Size(96, 31);
+            this.addBtn.Size = new System.Drawing.Size(132, 43);
             this.addBtn.TabIndex = 3;
             this.addBtn.Text = "添加";
             this.addBtn.UseVisualStyleBackColor = true;
+            this.addBtn.Click += new System.EventHandler(this.addBtn_Click);
             // 
             // ConfigForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(582, 304);
+            this.ClientSize = new System.Drawing.Size(800, 426);
             this.Controls.Add(this.addBtn);
             this.Controls.Add(this.updateBtn);
             this.Controls.Add(this.deleteBtn);
             this.Controls.Add(this.configGridView);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.MaximizeBox = false;
             this.Name = "ConfigForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

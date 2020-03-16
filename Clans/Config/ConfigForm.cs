@@ -8,6 +8,7 @@ namespace Clans {
 
         public ConfigForm(ClanApplicationContext appctxt, ConfigList configList) {
             InitializeComponent();
+            Icon = Properties.Resources.Clash;
             _appctxt = appctxt;
             _configList = configList;
         }

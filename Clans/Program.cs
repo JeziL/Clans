@@ -1,6 +1,7 @@
 ﻿using Clans;
 using System;
 using System.IO;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Windows.Forms;
@@ -33,6 +34,20 @@ public class ClanApplicationContext : ApplicationContext {
     private ConfigList _configList;
 
     private Clash _clash;
+    private bool autoStart {
+        get {
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            return rk.GetValue("Clans") != null;
+        }
+        set {
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            if (value) {
+                rk.SetValue("Clans", Application.ExecutablePath);
+            } else {
+                rk.DeleteValue("Clans", false);
+            }
+        }
+    }
 
     public ClanApplicationContext() {
         _clansMenuStrip = new ContextMenuStrip();
@@ -119,7 +134,7 @@ public class ClanApplicationContext : ApplicationContext {
 
         // 开机启动
         ToolStripMenuItem autostart_tsi = new ToolStripMenuItem("开机启动");
-        //autostart_tsi.Checked = _sysproxy.Enabled;
+        autostart_tsi.Checked = autoStart;
         autostart_tsi.Click += new EventHandler(autostartChanged);
         _clansMenuStrip.Items.Add(autostart_tsi);
 
@@ -131,7 +146,8 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Add("-");
 
         // 测速
-        ToolStripMenuItem spd_tsi = new ToolStripMenuItem("测速...");
+        ToolStripMenuItem spd_tsi = new ToolStripMenuItem("测速...（开发中）");
+        spd_tsi.Enabled = false;
         spd_tsi.Click += new EventHandler(speedTestClicked);
         _clansMenuStrip.Items.Add(spd_tsi);
         _clansMenuStrip.Items.Add("-");
@@ -396,7 +412,7 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     private void autostartChanged(object sender, EventArgs e) {
-
+        autoStart = !autoStart;
     }
 
     private void allowLANChanged(object sender, EventArgs e) {

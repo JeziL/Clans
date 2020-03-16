@@ -11,9 +11,11 @@ using System.Windows.Forms;
 namespace Clans {
     public partial class ConfigForm : Form {
         private ConfigList _configList;
+        private ClanApplicationContext _appctxt;
 
-        public ConfigForm(ConfigList configList) {
+        public ConfigForm(ClanApplicationContext appctxt, ConfigList configList) {
             InitializeComponent();
+            _appctxt = appctxt;
             _configList = configList;
         }
 
@@ -31,6 +33,18 @@ namespace Clans {
                 deleteBtn.Enabled = false;
                 updateBtn.Enabled = false;
             }
+        }
+        private void refreshList() {
+            configGridView.DataSource = null;
+            configGridView.Update();
+            configGridView.Refresh();
+            configGridView.DataSource = _configList.files;
+        }
+
+        private void deleteBtn_Click(object sender, EventArgs e) {
+            int index = configGridView.CurrentRow.Index;
+            _appctxt.DeleteConfigList(index);
+            refreshList();
         }
     }
 }

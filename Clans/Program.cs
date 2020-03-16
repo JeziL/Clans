@@ -253,6 +253,10 @@ public class ClanApplicationContext : ApplicationContext {
         File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
 
         _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+        reloadConfig();
+    }
+
+    void reloadConfig() {
         _clash.ReloadConfig(_currentConfig);
 
         // 读取 API 端口，并连接 API
@@ -272,7 +276,32 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     void showConfigForm(object sender, EventArgs e) {
-        ConfigForm form = new ConfigForm(_configList);
+        ConfigForm form = new ConfigForm(this, _configList);
         form.Show();
+    }
+
+    public void DeleteConfigList(int index) {
+        string timestamp = _configList.files[index].timestamp;
+        _configList.files.RemoveAt(index);
+        File.Delete(Path.Combine(_profileDir, $"{timestamp}.yaml"));
+
+        if (index < _configList.index) {
+            _configList.index--;
+        } else if (index == _configList.index) {
+            if (_configList.files.Count > 0) {
+                _configList.index = 0;
+
+                string n_timestamp = _configList.files[_configList.index].timestamp;
+                _currentConfig = Path.Combine(_profileDir, $"{n_timestamp}.yaml");
+                reloadConfig();
+            } else {
+                _configList.index = -1;
+
+                _currentConfig = _configFile;
+                reloadConfig();
+            }
+        }
+
+        File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
     }
 }

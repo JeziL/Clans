@@ -117,6 +117,19 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Add(cmd_tsi);
         _clansMenuStrip.Items.Add("-");
 
+        // 开机启动
+        ToolStripMenuItem autostart_tsi = new ToolStripMenuItem("开机启动");
+        //autostart_tsi.Checked = _sysproxy.Enabled;
+        autostart_tsi.Click += new EventHandler(autostartChanged);
+        _clansMenuStrip.Items.Add(autostart_tsi);
+
+        // 局域网连接
+        ToolStripMenuItem lan_tsi = new ToolStripMenuItem("允许局域网连接");
+        //autostart_tsi.Checked = _clashAPI.config.;
+        lan_tsi.Click += new EventHandler(allowLANChanged);
+        _clansMenuStrip.Items.Add(lan_tsi);
+        _clansMenuStrip.Items.Add("-");
+
         // 配置管理
         ToolStripItem cfg_tsi = _clansMenuStrip.Items.Add("配置");
         ToolStripMenuItem switch_tsi = new ToolStripMenuItem("切换托管配置");
@@ -139,6 +152,11 @@ public class ClanApplicationContext : ApplicationContext {
         ToolStripMenuItem manage_tsi = new ToolStripMenuItem("管理...");
         manage_tsi.Click += new EventHandler(showConfigForm);
         ((ToolStripDropDownItem)cfg_tsi).DropDownItems.Add(manage_tsi);
+
+        ToolStripMenuItem update_tsi = new ToolStripMenuItem("更新");
+        update_tsi.Click += new EventHandler(updateAllConfig);
+        ((ToolStripDropDownItem)cfg_tsi).DropDownItems.Add(update_tsi);
+
         _clansMenuStrip.Items.Add("-");
 
 
@@ -310,7 +328,7 @@ public class ClanApplicationContext : ApplicationContext {
         HttpClient client = new HttpClient();
         try {
             string configData = client.GetStringAsync(url).Result;
-            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             _configList.files.Add(new ConfigFile($"{timestamp}", name, url));
             _configList.index = _configList.files.Count - 1;
             _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
@@ -328,7 +346,7 @@ public class ClanApplicationContext : ApplicationContext {
         HttpClient client = new HttpClient();
         try {
             string configData = client.GetStringAsync(url).Result;
-            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (index == _configList.index) _clash.Stop();
             File.Delete(Path.Combine(_profileDir, $"{_configList.files[index].timestamp}.yaml"));
             _configList.files[index].timestamp = $"{timestamp}";
@@ -342,5 +360,40 @@ public class ClanApplicationContext : ApplicationContext {
         catch {
             MessageBox.Show("无法更新配置文件", "错误");
         }
+    }
+
+    private void updateAllConfig(object sender, EventArgs e) {
+        int success = 0;
+        int failed = 0;
+        HttpClient client = new HttpClient();
+        for (var i = 0; i < _configList.files.Count; i++) {
+            try {
+                string url = _configList.files[i].url;
+                string configData = client.GetStringAsync(url).Result;
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (i == _configList.index) _clash.Stop();
+                File.Delete(Path.Combine(_profileDir, $"{_configList.files[i].timestamp}.yaml"));
+                _configList.files[i].timestamp = $"{timestamp}";
+                File.WriteAllText(Path.Combine(_profileDir, $"{timestamp}.yaml"), configData);
+                if (i == _configList.index) {
+                    _currentConfig = Path.Combine(_profileDir, $"{timestamp}.yaml");
+                    reloadConfig();
+                }
+                success++;
+            }
+            catch {
+                failed++;
+            }
+        }
+        File.WriteAllText(_profileListFile, JsonConvert.SerializeObject(_configList));
+        MessageBox.Show($"成功：{success}，失败：{failed}", "更新完成");
+    }
+
+    private void autostartChanged(object sender, EventArgs e) {
+
+    }
+
+    private void allowLANChanged(object sender, EventArgs e) {
+
     }
 }

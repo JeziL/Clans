@@ -12,7 +12,7 @@ namespace Clans {
         [JsonIgnore]
         public string timeString {
             get {
-                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp));
+                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(timestamp));
                 DateTime dateTime = dateTimeOffset.UtcDateTime.ToLocalTime();
                 return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
             }

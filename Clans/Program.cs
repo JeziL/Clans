@@ -130,6 +130,12 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Add(lan_tsi);
         _clansMenuStrip.Items.Add("-");
 
+        // 测速
+        ToolStripMenuItem spd_tsi = new ToolStripMenuItem("测速...");
+        spd_tsi.Click += new EventHandler(speedTestClicked);
+        _clansMenuStrip.Items.Add(spd_tsi);
+        _clansMenuStrip.Items.Add("-");
+
         // 配置管理
         ToolStripItem cfg_tsi = _clansMenuStrip.Items.Add("配置");
         ToolStripMenuItem switch_tsi = new ToolStripMenuItem("切换托管配置");
@@ -395,5 +401,9 @@ public class ClanApplicationContext : ApplicationContext {
 
     private void allowLANChanged(object sender, EventArgs e) {
         _clashAPI.ChangeAllowLAN(!_clashAPI.config.allowLAN);
+    }
+
+    private void speedTestClicked(object sender, EventArgs e) {
+
     }
 }

@@ -7,6 +7,12 @@ environment:
   maxmind_key:
     secure: nSZU0wd6GZbqxuIn7emmkYZhJuFTZO2iu0MLGGEK4C0=
 
+platform:
+  - Any CPU
+
+configuration:
+  - Release
+
 before_build:
   - cmd: nuget restore
   - cmd: cd build && pip install requests && python download_assets.py %maxmind_key%

@@ -21,4 +21,16 @@ after_build:
   - cmd: makensis installer.nsi
 
 artifacts:
-  - path: build/*Setup.exe
+  - path: build/ClansSetup.exe
+
+deploy:
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: $(APPVEYOR_REPO_TAG_NAME)
+  provider: GitHub
+  auth_token:
+    secure: Qn6+z/GoGysZOhbEgFgbop0yDk9ZZ18jX8snzUvM96a5wX0CsR1OgFOmitARUqFc
+  artifact: build/ClansSetup.exe
+  force_update: true
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true

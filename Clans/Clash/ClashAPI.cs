@@ -78,13 +78,20 @@ namespace Clans {
         }
 
         public async Task<int> GetDelay(string proxyName, int timeout, string url) {
-            string resp = await _client.GetStringAsync($"{_exUrl}/proxies/{proxyName}/delay?timeout={timeout}&url={url}");
-            Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(resp);
-            if (result.ContainsKey("message") && result["message"].ToString() == "Timeout") {
-                return -2;
-            } else if (result.ContainsKey("delay")) {
-                return int.Parse(result["delay"].ToString());
-            } else {
+            try {
+                string resp = await _client.GetStringAsync($"{_exUrl}/proxies/{proxyName}/delay?timeout={timeout}&url={url}");
+                Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(resp);
+                if (result.ContainsKey("message") && result["message"].ToString() == "Timeout") {
+                    return -2;
+                }
+                else if (result.ContainsKey("delay")) {
+                    return int.Parse(result["delay"].ToString());
+                }
+                else {
+                    return -3;
+                }
+            }
+            catch {
                 return -3;
             }
         }

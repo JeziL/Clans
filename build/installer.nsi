@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Clans"
-!define PRODUCT_VERSION "0.9.0"
+!define PRODUCT_VERSION "0.10.0"
 !define PRODUCT_PUBLISHER "JeziL"
 !define PRODUCT_WEB_SITE "https://github.com/JeziL/Clans"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Clans.exe"

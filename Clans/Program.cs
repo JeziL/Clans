@@ -146,8 +146,8 @@ public class ClanApplicationContext : ApplicationContext {
         _clansMenuStrip.Items.Add("-");
 
         // 测速
-        ToolStripMenuItem spd_tsi = new ToolStripMenuItem("测速...（开发中）");
-        spd_tsi.Enabled = false;
+        ToolStripMenuItem spd_tsi = new ToolStripMenuItem("测速...");
+        spd_tsi.Enabled = _clashAPI.config.mode != "Direct";
         spd_tsi.Click += new EventHandler(speedTestClicked);
         _clansMenuStrip.Items.Add(spd_tsi);
         _clansMenuStrip.Items.Add("-");
@@ -233,6 +233,10 @@ public class ClanApplicationContext : ApplicationContext {
         string proxyName = ((ToolStripMenuItem)sender).Name;
         string groupName = ((ToolStripMenuItem)sender).Tag.ToString();
 
+        ChangeProxy(groupName, proxyName);
+    }
+
+    public void ChangeProxy(string groupName, string proxyName) {
         _clashAPI.ChangeProxy(groupName, proxyName);
 
         // 将代理选择更新至托管配置目录文件
@@ -420,6 +424,7 @@ public class ClanApplicationContext : ApplicationContext {
     }
 
     private void speedTestClicked(object sender, EventArgs e) {
-
+        BenchmarkForm form = new BenchmarkForm(this, _clashAPI, _currentConfig);
+        form.Show();
     }
 }

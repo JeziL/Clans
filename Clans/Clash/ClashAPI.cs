@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Collections.Generic;
 
 namespace Clans {
-    class ClashConfig {
+    public class ClashConfig {
         public int port { get; set; }
         [JsonProperty("socks-port")]
         public int socksPort { get; set; }
@@ -12,7 +12,7 @@ namespace Clans {
         public bool allowLAN { get; set; }
     }
 
-    class Proxy {
+    public class Proxy {
         public string name { get; set; }
         [JsonProperty("type")]
         public string proxyType { get; set; }
@@ -22,11 +22,11 @@ namespace Clans {
 
     }
 
-    class Proxies {
+    public class Proxies {
         public Dictionary<string, Proxy> proxies { get; set; }
     }
 
-    class ClashAPI {
+    public class ClashAPI {
         private string _exUrl;
         private static readonly HttpClient _client = new HttpClient();
         public ClashConfig config {
@@ -74,6 +74,18 @@ namespace Clans {
 
             string resp = request("/configs");
             config = JsonConvert.DeserializeObject<ClashConfig>(resp);
+        }
+
+        public int GetDelay(string proxyName, int timeout, string url) {
+            string resp = request($"/proxies/{proxyName}/delay?timeout={timeout}&url={url}");
+            Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(resp);
+            if (result.ContainsKey("message") && result["message"].ToString() == "Timeout") {
+                return -2;
+            } else if (result.ContainsKey("delay")) {
+                return int.Parse(result["delay"].ToString());
+            } else {
+                return -3;
+            }
         }
     }
 }

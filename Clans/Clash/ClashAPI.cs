@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace Clans {
@@ -76,8 +77,8 @@ namespace Clans {
             config = JsonConvert.DeserializeObject<ClashConfig>(resp);
         }
 
-        public int GetDelay(string proxyName, int timeout, string url) {
-            string resp = request($"/proxies/{proxyName}/delay?timeout={timeout}&url={url}");
+        public async Task<int> GetDelay(string proxyName, int timeout, string url) {
+            string resp = await _client.GetStringAsync($"{_exUrl}/proxies/{proxyName}/delay?timeout={timeout}&url={url}");
             Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(resp);
             if (result.ContainsKey("message") && result["message"].ToString() == "Timeout") {
                 return -2;

@@ -86,10 +86,9 @@ namespace Clans {
             menu.Show(proxyGridView, proxyGridView.PointToClient(Cursor.Position));
         }
 
-        private void startBenchmark(object sender, EventArgs e, int index) {
+        private async void startBenchmark(object sender, EventArgs e, int index) {
             ProxyBenchmarkResult r = _results[index];
-            r.delay = _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
-            //refreshList();
+            r.delay = await _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
         }
 
         private void setProxy(object sender, EventArgs e, int index) {
@@ -98,11 +97,10 @@ namespace Clans {
             _appctxt.ChangeProxy(groupName, proxyName);
         }
 
-        private void startBtn_Click(object sender, EventArgs e) {
+        private async void startBtn_Click(object sender, EventArgs e) {
             foreach (ProxyBenchmarkResult r in _results) {
-                r.delay = _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
+                r.delay = await _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
             }
-            //refreshList();
         }
     }
 

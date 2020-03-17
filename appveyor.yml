@@ -13,12 +13,15 @@ platform:
 configuration:
   - Release
 
+install:
+  - cmd: choco install nsis -pre
+
 before_build:
   - cmd: nuget restore
   - cmd: cd build && pip install requests && python download_assets.py %maxmind_key%
 
 after_build:
-  - cmd: cd build && makensis.exe installer.nsi
+  - cmd: cd build && "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
 
 artifacts:
   - path: build/*.exe

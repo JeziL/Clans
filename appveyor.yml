@@ -1,0 +1,18 @@
+image: Visual Studio 2019
+
+init:
+  - cmd: set PATH=C:\Python38-x64;C:\Python38-x64\Scripts;%PATH%
+
+environment:
+  maxmind_key:
+    secure: nSZU0wd6GZbqxuIn7emmkYZhJuFTZO2iu0MLGGEK4C0=
+
+before_build:
+  - cmd: nuget restore
+  - cmd: cd build && pip install requests && python download_assets.py %maxmind_key%
+
+after_build:
+  - cmd: cd build && makensis installer.nsi
+
+artifacts:
+  - path: build/*.exe

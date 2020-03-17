@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
 using System.Windows.Forms;
+using System.ComponentModel;
 using YamlDotNet.Serialization;
 using System.Collections.Generic;
 
@@ -13,7 +13,7 @@ namespace Clans {
         private ClashAPI _clashAPI;
         private Dictionary<string, Proxy> _proxies;
         private List<string> _groups;
-        private List<ProxyBenchmarkResult> _results;
+        private BindingList<ProxyBenchmarkResult> _results;
 
         public BenchmarkForm(ClanApplicationContext appctxt, ClashAPI api, string config) {
             Icon = Properties.Resources.Clash;
@@ -22,7 +22,7 @@ namespace Clans {
             _currentConfig = config;
             _clashAPI = api;
             _groups = new List<string>();
-            _results = new List<ProxyBenchmarkResult>();
+            _results = new BindingList<ProxyBenchmarkResult>();
         }
 
         private void BenchmarkForm_Load(object sender, EventArgs e) {
@@ -89,7 +89,7 @@ namespace Clans {
         private void startBenchmark(object sender, EventArgs e, int index) {
             ProxyBenchmarkResult r = _results[index];
             r.delay = _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
-            refreshList();
+            //refreshList();
         }
 
         private void setProxy(object sender, EventArgs e, int index) {
@@ -97,11 +97,41 @@ namespace Clans {
             string proxyName = _results[index].name;
             _appctxt.ChangeProxy(groupName, proxyName);
         }
+
+        private void startBtn_Click(object sender, EventArgs e) {
+            foreach (ProxyBenchmarkResult r in _results) {
+                r.delay = _clashAPI.GetDelay(r.name, 5000, _benchmarkURL);
+            }
+            //refreshList();
+        }
     }
 
-    class ProxyBenchmarkResult {
-        public string name { get; set; }
-        public int delay { get; set; }
+    class ProxyBenchmarkResult : INotifyPropertyChanged {
+        private string _name;
+        private int _delay;
+        private string _delayString;
+
+        public string name {
+            get {
+                return _name;
+            }
+            set {
+                _name = value;
+                notifyPropertyChanged("name");
+            }
+        }
+        public int delay {
+            get {
+                return _delay;
+            }
+            set {
+                _delay = value;
+                notifyPropertyChanged("delay");
+                notifyPropertyChanged("delayString");
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public ProxyBenchmarkResult(string name) {
             this.name = name;
@@ -121,7 +151,14 @@ namespace Clans {
                         return $"{delay}ms";
                 }
             }
-            set { }
+            set {
+                _delayString = value;
+                notifyPropertyChanged("delayString");
+            }
+        }
+
+        private void notifyPropertyChanged(string name) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

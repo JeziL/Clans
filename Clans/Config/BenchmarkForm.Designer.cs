@@ -98,6 +98,7 @@
             this.startBtn.TabIndex = 2;
             this.startBtn.Text = "全部开始";
             this.startBtn.UseVisualStyleBackColor = true;
+            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
             // 
             // BenchmarkForm
             // 

@@ -23,7 +23,7 @@ before_build:
   - cmd: cd build && pip install requests && python download_assets.py %maxmind_key%
 
 after_build:
-  - cmd: cd build && C:\Program Files (x86)\NSIS\makensis.exe /CMDHELP
+  - cmd: cd build && "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
 
 artifacts:
   - path: build/*.exe

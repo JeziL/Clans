@@ -13,17 +13,12 @@ platform:
 configuration:
   - Release
 
-install:
-  - ps: |
-      Invoke-WebRequest https://raw.githubusercontent.com/appveyor/build-images/master/scripts/Windows/install_nsis.ps1 -OutFile "build\install_nsis.ps1"
-      build\install_nsis.ps1
-
 before_build:
   - cmd: nuget restore
   - cmd: cd build && pip install requests && python download_assets.py %maxmind_key%
 
 after_build:
-  - cmd: cd build && "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+  - cmd: cd build && makensis.exe installer.nsi
 
 artifacts:
   - path: build/*.exe
